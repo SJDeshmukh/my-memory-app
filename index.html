@@ -1,409 +1,345 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Memory Unfolding</title>
+  <meta charset="UTF-8">
+  <title>Birthday Candle Flame Countdown</title>
   <style>
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: linear-gradient(-45deg, #ffafcc, #ffd6e0, #fff0f5, #ffe3ec);
-      background-size: 400% 400%;
-      animation: gradientFlow 15s ease infinite;
-      z-index: -3;
-    }
-
-    @keyframes gradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    body {
+    html, body {
       margin: 0;
-      background: #fff8f0;
-      font-family: 'Segoe UI', sans-serif;
-      overflow: hidden;
-    }
-
-    #grid {
-      position: relative;
-      width: 100vw;
+      padding: 0;
+      background: #0b0b0b;
       height: 100vh;
-    }
-
-    .box {
-      position: absolute;
-      width: 120px;
-      height: 120px;
-      background: #ffcfd2;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 1s ease, opacity 0.5s ease;
-      user-select: none;
-      font-weight: bold;
-      transform: scale(0);
       overflow: hidden;
-    }
-
-    .box.show {
-      transform: scale(1);
-    }
-
-    .fade-out {
-      opacity: 0;
-      transform: scale(0);
-    }
-
-    .box:hover {
-      background: #ffb3c1;
-    }
-
-    .box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 12px;
-    }
-
-    #memory-card {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      width: 300px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      z-index: 1000;
-      padding: 20px;
-      display: none;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+    }
+
+    .countdown-wrapper {
+      width: 100%;
       text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 2s ease-in-out;
+      position: relative;
+      z-index: 1000;
+      padding: 0 20px;
+      box-sizing: border-box;
     }
 
-    #memory-card.active {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: all;
-      display: flex;
-    }
-
-    #memory-card img {
-      max-width: 100%;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    #memory-card button {
-      padding: 8px 16px;
-      border: none;
-      background: #ffafcc;
-      color: #333;
+    .countdown {
+      font-size: 2.5em;
       font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
+      color: #ffe9c7;
+      text-shadow:
+        0 0 10px #ffc,
+        0 0 20px #f90,
+        0 0 30px rgba(255, 150, 50, 0.5);
+      animation: shimmer 3s infinite alternate ease-in-out;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    #memory-card button:hover {
-      background: #ff8fa3;
+    .subtitle {
+      margin-top: 8px;
+      font-size: 1.2em;
+      color: #ffd7a5;
+      text-shadow: 0 0 10px rgba(255, 200, 150, 0.3);
+      font-style: italic;
+      white-space: normal;
     }
 
-    #no-memories {
-      font-size: 18px;
-      color: #888;
-      margin-top: 10px;
+    @keyframes shimmer {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.95; }
+      100% { transform: scale(1); opacity: 1; }
     }
 
-    #bg-canvas {
-      position: fixed;
-      pointer-events: none;
-      z-index: -2;
-      top: 0;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scene {
+      position: relative;
+      width: 150px;
+      height: 300px;
+    }
+
+    canvas {
+      position: absolute;
+      top: -100px;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 150px;
+      height: 400px;
+      pointer-events: none;
+    }
+
+    .candle {
+      width: 40px;
+      height: 120px;
+      background: linear-gradient(#fff4d6, #ffce91);
+      border-radius: 8px;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px rgba(255, 222, 150, 0.3) inset;
+      z-index: 2;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: fall 3s linear forwards;
+      z-index: 999;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .button-wrapper {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .button-wrapper button {
+      background: #ffcc99;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1em;
+      margin: 0 10px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 150, 50, 0.5);
+      transition: all 0.4s ease;
+    }
+
+    .button-wrapper button:hover {
+      background: #ffaa66;
+      box-shadow: 0 0 25px rgba(255, 150, 50, 0.8);
     }
   </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
-<div id="grid"></div>
 
-<div id="memory-card">
-  <img id="card-image" src="" alt="Memory Image" />
-  <div id="no-memories" style="display: none;">No more memories left 🌸</div>
-  <button onclick="closeCard()">Close</button>
+<div class="countdown-wrapper">
+  <div class="countdown" id="countdown">Loading...</div>
+  <div class="subtitle" id="subtitle">Waiting for her spark to light the day...</div>
+</div>
+
+<div class="scene">
+  <canvas id="flameCanvas"></canvas>
+  <div class="candle"></div>
+</div>
+
+<div class="button-wrapper" id="buttonWrapper">
+  <button id="blowCandleBtn">🎂 Blow Candle</button>
+  <button id="openGiftBtn" style="display:none;">🎁 Open Gift</button>
 </div>
 
 <script>
-  const grid = document.getElementById('grid');
-  const boxSize = 120;
-  const spacing = 10;
-  const directions = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-  const occupied = new Map();
-  const unfoldedBoxes = [];
+  const canvas = document.getElementById("flameCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = 400;
+  canvas.height = 400;
 
-  function posKey(x, y) {
-    return `${x},${y}`;
-  }
+  const countdownEl = document.getElementById("countdown");
+  const subtitleEl = document.getElementById("subtitle");
 
-  function toPixels(x, y) {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    return {
-      left: centerX + x * (boxSize + spacing) - boxSize / 2,
-      top: centerY + y * (boxSize + spacing) - boxSize / 2,
-    };
-  }
+  const startDate = new Date("2025-07-10T00:00:00");
+  const endDate = new Date("2025-07-10T21:49:00");
 
-  let memoryImages = Array.from({ length: 199 }, (_, i) => `images/image${i + 1}.jpg`);
-  memoryImages = shuffleArray(memoryImages);
+  let birthdayTriggered = false;
+  let flameFadeOut = false;
+  let flameOpacity = 1;
 
-  function shuffleArray(arr) {
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  }
+  const buttonWrapper = document.getElementById("buttonWrapper");
+  const blowBtn = document.getElementById("blowCandleBtn");
+  const giftBtn = document.getElementById("openGiftBtn");
 
-  let currentImage = null;
-  let activeBox = null;
+  function updateCountdown() {
+    const now = new Date();
+    const remaining = endDate - now;
 
-  function getNextImage() {
-    if (memoryImages.length === 0) return null;
-    return memoryImages.shift();
-  }
-
-  function createBox(x, y, label = "📸 Memory", isCenter = false) {
-    const key = posKey(x, y);
-    if (occupied.has(key)) return;
-
-    const box = document.createElement('div');
-    box.className = 'box';
-    box.textContent = label;
-
-    const { left, top } = toPixels(x, y);
-    box.style.left = `${left}px`;
-    box.style.top = `${top}px`;
-    box.dataset.x = x;
-    box.dataset.y = y;
-
-    let clickTimeout;
-let isDoubleClick = false;
-
-box.addEventListener('click', (e) => {
-  e.stopPropagation();
-
-  // Set a short delay to detect double-click
-  clickTimeout = setTimeout(() => {
-    if (isDoubleClick) {
-      isDoubleClick = false;
-      return; // prevent unfolding on double-click
+    if (remaining <= 0 && !birthdayTriggered) {
+      birthdayTriggered = true;
+      countdownEl.textContent = "Today’s the Day – Happy Birthday, Siddhu!";
+      subtitleEl.textContent = "May your light shine forever 💖";
+      launchParty();
+      buttonWrapper.style.display = "block";
+      return;
     }
 
-    if (isCenter) {
-      if (box.dataset.state === 'folded' || unfoldedBoxes.length === 0) {
-        expandAround(x, y);
-        box.textContent = "✨ Again?";
-        box.dataset.state = 'unfolded';
-      } else {
-        foldAll();
-        box.textContent = "🎁 Start Here";
-        box.dataset.state = 'folded';
-      }
-    } else {
-      expandAround(parseInt(box.dataset.x), parseInt(box.dataset.y));
-    }
-  }, 250); // Allow time to detect double-click
-});
+    if (remaining <= 0) return;
 
-box.addEventListener('dblclick', (e) => {
-  e.stopPropagation();
-  isDoubleClick = true;
-  clearTimeout(clickTimeout); // Prevent unfolding
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+    const seconds = Math.floor((remaining / 1000) % 60);
 
-  if (!box.dataset.image) {
-    const nextImage = getNextImage();
-    if (nextImage) {
-      box.dataset.image = nextImage;
-      currentImage = nextImage;
-      activeBox = box;
-      showMemoryCard();
-    } else {
-      currentImage = null;
-      activeBox = null;
-      showMemoryCard();
-    }
-  } else {
-    currentImage = box.dataset.image;
-    activeBox = box;
-    showMemoryCard();
-  }
-});
+    let message = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    let subtitle = "The light is growing brighter...";
 
-
-
-
-
-
-
-
-    
-    grid.appendChild(box);
-    requestAnimationFrame(() => box.classList.add('show'));
-    occupied.set(key, box);
-
-    if (!isCenter) unfoldedBoxes.push(box);
-    if (isCenter) box.dataset.state = 'folded';
-  }
-
-  function expandAround(x, y) {
-    let delay = 0;
-    for (const [dx, dy] of Object.values(directions)) {
-      const nx = x + dx;
-      const ny = y + dy;
-      setTimeout(() => createBox(nx, ny), delay);
-      delay += 200;
-    }
-  }
-
-  function foldAll() {
-    if (unfoldedBoxes.length === 0) return;
-
-    const boxesByDistance = new Map();
-
-    unfoldedBoxes.forEach(box => {
-      const x = parseInt(box.dataset.x);
-      const y = parseInt(box.dataset.y);
-      const dist = Math.abs(x) + Math.abs(y);
-      if (!boxesByDistance.has(dist)) boxesByDistance.set(dist, []);
-      boxesByDistance.get(dist).push(box);
-    });
-
-    const sorted = Array.from(boxesByDistance.keys()).sort((a, b) => b - a);
-
-    sorted.forEach((dist, i) => {
-      const delay = i * 800;
-      boxesByDistance.get(dist).forEach(box => {
-        setTimeout(() => {
-          box.classList.remove('show');
-          box.classList.add('fade-out');
-          setTimeout(() => {
-            grid.removeChild(box);
-            occupied.delete(posKey(box.dataset.x, box.dataset.y));
-          }, 1000);
-        }, delay);
-      });
-    });
-
-    unfoldedBoxes.length = 0;
-  }
-
-  function showMemoryCard() {
-    const card = document.getElementById('memory-card');
-    const img = document.getElementById('card-image');
-    const noMemories = document.getElementById('no-memories');
-
-    if (currentImage) {
-      img.src = currentImage;
-      img.style.display = 'block';
-      noMemories.style.display = 'none';
-    } else {
-      img.style.display = 'none';
-      noMemories.style.display = 'block';
+    if (days === 0) {
+      message = `🎁 Only ${hours}h ${minutes}m left!`;
+      subtitle = "Almost time to celebrate her 💝";
+    } else if (days === 1) {
+      message = `💖 Just 1 day to her special moment!`;
+      subtitle = "Get ready for her beautiful day!";
+    } else if (days <= 3) {
+      subtitle = "Counting heartbeats to her smile...";
     }
 
-    card.classList.add('active');
+    countdownEl.textContent = message;
+    subtitleEl.textContent = subtitle;
   }
 
-  function closeCard() {
-    document.getElementById('memory-card').classList.remove('active');
-
-    // After closing, show image in box
-    if (activeBox && activeBox.dataset.image) {
-      activeBox.innerHTML = `<img src="${activeBox.dataset.image}" alt="Memory" />`;
-    }
-
-    currentImage = null;
-    activeBox = null;
+  function getFlameHeight() {
+    const now = new Date();
+    const total = endDate - startDate;
+    const elapsed = Math.max(0, now - startDate);
+    const progress = Math.min(1, elapsed / total);
+    const minHeight = 30;
+    const maxHeight = 180;
+    return minHeight + (maxHeight - minHeight) * progress;
   }
 
-  function createStartBox() {
-    createBox(0, 0, "🎁 Start Here", true);
-  }
+  let t = 0;
 
-  // Background particles
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let particles = [];
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  class Particle {
-    constructor() {
-      this.reset();
-    }
-
-    reset() {
-      this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
-      this.radius = 1 + Math.random() * 6;
-      this.alpha = 0.3 + Math.random() * 0.7;
-      this.dx = (Math.random() - 0.5) * 1.5;
-      this.dy = (Math.random() - 0.5) * 1.5;
-    }
-
-    update() {
-      this.x += this.dx;
-      this.y += this.dy;
-      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-        this.reset();
-      }
-    }
-
-    draw() {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 175, 204, ${this.alpha})`;
-      ctx.fill();
-    }
-  }
-
-  function animateParticles() {
+  function drawFlame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      p.update();
-      p.draw();
-    });
-    requestAnimationFrame(animateParticles);
+
+    const centerX = canvas.width / 2;
+    const baseY = 250;
+    const height = getFlameHeight();
+
+    if (flameFadeOut) flameOpacity = Math.max(0, flameOpacity - 0.01);
+    else flameOpacity = 1;
+
+    if (flameOpacity <= 0) return;
+
+    const points = [];
+    const waveCount = 4
+    const waveHeight = 100;
+    for (let i = 0; i <= waveCount; i++) {
+      const x = centerX + (Math.sin(t + i) * waveHeight);
+      const y = baseY - (height * (i / waveCount));
+      points.push({ x, y });
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, baseY);
+    for (let pt of points) {
+      ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.closePath();
+
+    const gradient = ctx.createLinearGradient(centerX, baseY - height, centerX, baseY);
+    gradient.addColorStop(0, `rgba(255, 255, 100, ${0.6 * flameOpacity})`);
+    gradient.addColorStop(0.4, `rgba(255, 150, 0, ${0.4 * flameOpacity})`);
+    gradient.addColorStop(1, `rgba(255, 80, 0, 0)`);
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    t += 0.02;
   }
 
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
+  function animate() {
+    drawFlame();
+    updateCountdown();
+    requestAnimationFrame(animate);
+  }
 
-  particles = Array.from({ length: 100 }, () => new Particle());
-  animateParticles();
+  // 🎇 Sparkle Party
+  function launchParty() {
+    setInterval(() => {
+      for (let i = 0; i < 15; i++) createPopper();
+    }, 500);
 
-  createStartBox();
+    for (let i = 0; i < 100; i++) {
+      setTimeout(() => createPopper(), i * 30);
+    }
+  }
+
+  function createPopper() {
+    const popper = document.createElement("div");
+    popper.className = "confetti";
+    popper.style.position = "fixed";
+    popper.style.width = `${Math.random() * 8 + 4}px`;
+    popper.style.height = popper.style.width;
+    popper.style.borderRadius = "50%";
+    popper.style.left = `${Math.random() * 100}vw`;
+    popper.style.top = "-20px";
+    popper.style.opacity = "1";
+    popper.style.zIndex = 9999;
+    popper.style.backgroundColor = getRandomColor();
+    popper.style.boxShadow = `0 0 10px ${popper.style.backgroundColor}`;
+    popper.style.transform = `scale(${Math.random() * 1.2 + 0.5})`;
+
+    const duration = 5 + Math.random() * 4;
+    popper.style.animation = `fallPop ${duration}s linear forwards`;
+
+    document.body.appendChild(popper);
+    setTimeout(() => popper.remove(), duration * 1000);
+  }
+
+  function getRandomColor() {
+    const colors = ["#ffcc00", "#ff6699", "#66ccff", "#ffffff", "#ff66ff", "#99ffcc", "#ffc107", "#f44336"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  const style = document.createElement("style");
+  style.innerHTML = `
+    @keyframes fallPop {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(120vh) rotate(720deg) scale(0.8);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  blowBtn.addEventListener("click", () => {
+    flameFadeOut = true;
+    blowBtn.style.display = "none";
+    setTimeout(() => {
+      giftBtn.style.display = "inline-block";
+    }, 3000);
+  });
+
+  animate();
+  blowBtn.addEventListener("click", () => {
+  flameFadeOut = true;
+  blowBtn.style.display = "none";
+  setTimeout(() => {
+    giftBtn.style.display = "inline-block";
+  }, 3000);
+});
+
+giftBtn.addEventListener("click", () => {
+  window.location.href = "index.html"; // 🔁 redirect here
+});
+
 </script>
+
 </body>
 </html>
