@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Birthday Candle Flame Countdown</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0b0b0b;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .countdown-wrapper {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 2s ease-in-out;
+      position: relative;
+      z-index: 1000;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .countdown {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #ffe9c7;
+      text-shadow:
+        0 0 10px #ffc,
+        0 0 20px #f90,
+        0 0 30px rgba(255, 150, 50, 0.5);
+      animation: shimmer 3s infinite alternate ease-in-out;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      font-size: 1.2em;
+      color: #ffd7a5;
+      text-shadow: 0 0 10px rgba(255, 200, 150, 0.3);
+      font-style: italic;
+      white-space: normal;
+    }
+
+    @keyframes shimmer {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.95; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scene {
+      position: relative;
+      width: 150px;
+      height: 300px;
+    }
+
+    canvas {
+      position: absolute;
+      top: -100px;
+      left: 0;
+      width: 150px;
+      height: 400px;
+      pointer-events: none;
+    }
+
+    .candle {
+      width: 40px;
+      height: 120px;
+      background: linear-gradient(#fff4d6, #ffce91);
+      border-radius: 8px;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px rgba(255, 222, 150, 0.3) inset;
+      z-index: 2;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: fall 3s linear forwards;
+      z-index: 999;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .button-wrapper {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .button-wrapper button {
+      background: #ffcc99;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1em;
+      margin: 0 10px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 150, 50, 0.5);
+      transition: all 0.4s ease;
+    }
+
+    .button-wrapper button:hover {
+      background: #ffaa66;
+      box-shadow: 0 0 25px rgba(255, 150, 50, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+<div class="countdown-wrapper">
+  <div class="countdown" id="countdown">Loading...</div>
+  <div class="subtitle" id="subtitle">Waiting for her spark to light the day...</div>
+</div>
+
+<div class="scene">
+  <canvas id="flameCanvas"></canvas>
+  <div class="candle"></div>
+</div>
+
+<div class="button-wrapper" id="buttonWrapper">
+  <button id="blowCandleBtn">🎂 Blow Candle</button>
+  <button id="openGiftBtn" style="display:none;">🎁 Open Gift</button>
+</div>
+
+<script>
+  const canvas = document.getElementById("flameCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = 400;
+  canvas.height = 400;
+
+  const countdownEl = document.getElementById("countdown");
+  const subtitleEl = document.getElementById("subtitle");
+
+  const startDate = new Date("2025-07-10T00:00:00");
+  const endDate = new Date("2025-07-10T21:49:00");
+
+  let birthdayTriggered = false;
+  let flameFadeOut = false;
+  let flameOpacity = 1;
+
+  const buttonWrapper = document.getElementById("buttonWrapper");
+  const blowBtn = document.getElementById("blowCandleBtn");
+  const giftBtn = document.getElementById("openGiftBtn");
+
+  function updateCountdown() {
+    const now = new Date();
+    const remaining = endDate - now;
+
+    if (remaining <= 0 && !birthdayTriggered) {
+      birthdayTriggered = true;
+      countdownEl.textContent = "Today’s the Day – Happy Birthday, Siddhu!";
+      subtitleEl.textContent = "May your light shine forever 💖";
+      launchParty();
+      buttonWrapper.style.display = "block";
+      return;
+    }
+
+    if (remaining <= 0) return;
+
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+    const seconds = Math.floor((remaining / 1000) % 60);
+
+    let message = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    let subtitle = "The light is growing brighter...";
+
+    if (days === 0) {
+      message = `🎁 Only ${hours}h ${minutes}m left!`;
+      subtitle = "Almost time to celebrate her 💝";
+    } else if (days === 1) {
+      message = `💖 Just 1 day to her special moment!`;
+      subtitle = "Get ready for her beautiful day!";
+    } else if (days <= 3) {
+      subtitle = "Counting heartbeats to her smile...";
+    }
+
+    countdownEl.textContent = message;
+    subtitleEl.textContent = subtitle;
+  }
+
+  function getFlameHeight() {
+    const now = new Date();
+    const total = endDate - startDate;
+    const elapsed = Math.max(0, now - startDate);
+    const progress = Math.min(1, elapsed / total);
+    const minHeight = 30;
+    const maxHeight = 180;
+    return minHeight + (maxHeight - minHeight) * progress;
+  }
+
+  let t = 0;
+
+  function drawFlame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const baseY = 250;
+    const height = getFlameHeight();
+
+    if (flameFadeOut) flameOpacity = Math.max(0, flameOpacity - 0.01);
+    else flameOpacity = 1;
+
+    if (flameOpacity <= 0) return;
+
+    const points = [];
+    const waveCount = 4
+    const waveHeight = 100;
+    for (let i = 0; i <= waveCount; i++) {
+      const x = centerX + (Math.sin(t + i) * waveHeight);
+      const y = baseY - (height * (i / waveCount));
+      points.push({ x, y });
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, baseY);
+    for (let pt of points) {
+      ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.closePath();
+
+    const gradient = ctx.createLinearGradient(centerX, baseY - height, centerX, baseY);
+    gradient.addColorStop(0, `rgba(255, 255, 100, ${0.6 * flameOpacity})`);
+    gradient.addColorStop(0.4, `rgba(255, 150, 0, ${0.4 * flameOpacity})`);
+    gradient.addColorStop(1, `rgba(255, 80, 0, 0)`);
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    t += 0.02;
+  }
+
+  function animate() {
+    drawFlame();
+    updateCountdown();
+    requestAnimationFrame(animate);
+  }
+
+  // 🎇 Sparkle Party
+  function launchParty() {
+    setInterval(() => {
+      for (let i = 0; i < 15; i++) createPopper();
+    }, 500);
+
+    for (let i = 0; i < 100; i++) {
+      setTimeout(() => createPopper(), i * 30);
+    }
+  }
+
+  function createPopper() {
+    const popper = document.createElement("div");
+    popper.className = "confetti";
+    popper.style.position = "fixed";
+    popper.style.width = `${Math.random() * 8 + 4}px`;
+    popper.style.height = popper.style.width;
+    popper.style.borderRadius = "50%";
+    popper.style.left = `${Math.random() * 100}vw`;
+    popper.style.top = "-20px";
+    popper.style.opacity = "1";
+    popper.style.zIndex = 9999;
+    popper.style.backgroundColor = getRandomColor();
+    popper.style.boxShadow = `0 0 10px ${popper.style.backgroundColor}`;
+    popper.style.transform = `scale(${Math.random() * 1.2 + 0.5})`;
+
+    const duration = 5 + Math.random() * 4;
+    popper.style.animation = `fallPop ${duration}s linear forwards`;
+
+    document.body.appendChild(popper);
+    setTimeout(() => popper.remove(), duration * 1000);
+  }
+
+  function getRandomColor() {
+    const colors = ["#ffcc00", "#ff6699", "#66ccff", "#ffffff", "#ff66ff", "#99ffcc", "#ffc107", "#f44336"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  const style = document.createElement("style");
+  style.innerHTML = `
+    @keyframes fallPop {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(120vh) rotate(720deg) scale(0.8);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  blowBtn.addEventListener("click", () => {
+    flameFadeOut = true;
+    blowBtn.style.display = "none";
+    setTimeout(() => {
+      giftBtn.style.display = "inline-block";
+    }, 3000);
+  });
+
+  animate();
+  blowBtn.addEventListener("click", () => {
+  flameFadeOut = true;
+  blowBtn.style.display = "none";
+  setTimeout(() => {
+    giftBtn.style.display = "inline-block";
+  }, 3000);
+});
+
+giftBtn.addEventListener("click", () => {
+  window.location.href = "index.html"; // 🔁 redirect here
+});
+
+</script>
+
+</body>
+</html>
