@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
   <meta charset="UTF-8">
   <title>Birthday Candle Flame Countdown</title>
   <style>
@@ -131,10 +132,146 @@
     .button-wrapper button:hover {
       background: #ffaa66;
       box-shadow: 0 0 25px rgba(255, 150, 50, 0.8);
+=======
+  <meta charset="UTF-8" />
+  <title>Memory Unfolding</title>
+  <style>
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(-45deg, #ffafcc, #ffd6e0, #fff0f5, #ffe3ec);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+      z-index: -3;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    body {
+      margin: 0;
+      background: #fff8f0;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #grid {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .box {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: #ffcfd2;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 1s ease, opacity 0.5s ease;
+      user-select: none;
+      font-weight: bold;
+      transform: scale(0);
+      overflow: hidden;
+    }
+
+    .box.show {
+      transform: scale(1);
+    }
+
+    .fade-out {
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .box:hover {
+      background: #ffb3c1;
+    }
+
+    .box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    #memory-card {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 300px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 1000;
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    #memory-card.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: all;
+      display: flex;
+    }
+
+    #memory-card img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    #memory-card button {
+      padding: 8px 16px;
+      border: none;
+      background: #ffafcc;
+      color: #333;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #memory-card button:hover {
+      background: #ff8fa3;
+    }
+
+    #no-memories {
+      font-size: 18px;
+      color: #888;
+      margin-top: 10px;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      pointer-events: none;
+      z-index: -2;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+>>>>>>> 9b2a8ad (Initial commit)
     }
   </style>
 </head>
 <body>
+<<<<<<< HEAD
 
 <div class="countdown-wrapper">
   <div class="countdown" id="countdown">Loading...</div>
@@ -341,5 +478,272 @@ giftBtn.addEventListener("click", () => {
 
 </script>
 
+=======
+<canvas id="bg-canvas"></canvas>
+<div id="grid"></div>
+
+<div id="memory-card">
+  <img id="card-image" src="" alt="Memory Image" />
+  <div id="no-memories" style="display: none;">No more memories left 🌸</div>
+  <button onclick="closeCard()">Close</button>
+</div>
+
+<script>
+  const grid = document.getElementById('grid');
+  const boxSize = 120;
+  const spacing = 10;
+  const directions = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  const occupied = new Map();
+  const unfoldedBoxes = [];
+
+  function posKey(x, y) {
+    return `${x},${y}`;
+  }
+
+  function toPixels(x, y) {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    return {
+      left: centerX + x * (boxSize + spacing) - boxSize / 2,
+      top: centerY + y * (boxSize + spacing) - boxSize / 2,
+    };
+  }
+
+  let memoryImages = Array.from({ length: 199 }, (_, i) => `images/image${i + 1}.jpg`);
+  memoryImages = shuffleArray(memoryImages);
+
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  let currentImage = null;
+  let activeBox = null;
+
+  function getNextImage() {
+    if (memoryImages.length === 0) return null;
+    return memoryImages.shift();
+  }
+
+  function createBox(x, y, label = "📸 Memory", isCenter = false) {
+    const key = posKey(x, y);
+    if (occupied.has(key)) return;
+
+    const box = document.createElement('div');
+    box.className = 'box';
+    box.textContent = label;
+
+    const { left, top } = toPixels(x, y);
+    box.style.left = `${left}px`;
+    box.style.top = `${top}px`;
+    box.dataset.x = x;
+    box.dataset.y = y;
+
+    let clickTimeout;
+let isDoubleClick = false;
+
+box.addEventListener('click', (e) => {
+  e.stopPropagation();
+
+  // Set a short delay to detect double-click
+  clickTimeout = setTimeout(() => {
+    if (isDoubleClick) {
+      isDoubleClick = false;
+      return; // prevent unfolding on double-click
+    }
+
+    if (isCenter) {
+      if (box.dataset.state === 'folded' || unfoldedBoxes.length === 0) {
+        expandAround(x, y);
+        box.textContent = "✨ Again?";
+        box.dataset.state = 'unfolded';
+      } else {
+        foldAll();
+        box.textContent = "🎁 Start Here";
+        box.dataset.state = 'folded';
+      }
+    } else {
+      expandAround(parseInt(box.dataset.x), parseInt(box.dataset.y));
+    }
+  }, 250); // Allow time to detect double-click
+});
+
+box.addEventListener('dblclick', (e) => {
+  e.stopPropagation();
+  isDoubleClick = true;
+  clearTimeout(clickTimeout); // Prevent unfolding
+
+  if (!box.dataset.image) {
+    const nextImage = getNextImage();
+    if (nextImage) {
+      box.dataset.image = nextImage;
+      currentImage = nextImage;
+      activeBox = box;
+      showMemoryCard();
+    } else {
+      currentImage = null;
+      activeBox = null;
+      showMemoryCard();
+    }
+  } else {
+    currentImage = box.dataset.image;
+    activeBox = box;
+    showMemoryCard();
+  }
+});
+
+
+
+
+
+
+
+
+    
+    grid.appendChild(box);
+    requestAnimationFrame(() => box.classList.add('show'));
+    occupied.set(key, box);
+
+    if (!isCenter) unfoldedBoxes.push(box);
+    if (isCenter) box.dataset.state = 'folded';
+  }
+
+  function expandAround(x, y) {
+    let delay = 0;
+    for (const [dx, dy] of Object.values(directions)) {
+      const nx = x + dx;
+      const ny = y + dy;
+      setTimeout(() => createBox(nx, ny), delay);
+      delay += 200;
+    }
+  }
+
+  function foldAll() {
+    if (unfoldedBoxes.length === 0) return;
+
+    const boxesByDistance = new Map();
+
+    unfoldedBoxes.forEach(box => {
+      const x = parseInt(box.dataset.x);
+      const y = parseInt(box.dataset.y);
+      const dist = Math.abs(x) + Math.abs(y);
+      if (!boxesByDistance.has(dist)) boxesByDistance.set(dist, []);
+      boxesByDistance.get(dist).push(box);
+    });
+
+    const sorted = Array.from(boxesByDistance.keys()).sort((a, b) => b - a);
+
+    sorted.forEach((dist, i) => {
+      const delay = i * 800;
+      boxesByDistance.get(dist).forEach(box => {
+        setTimeout(() => {
+          box.classList.remove('show');
+          box.classList.add('fade-out');
+          setTimeout(() => {
+            grid.removeChild(box);
+            occupied.delete(posKey(box.dataset.x, box.dataset.y));
+          }, 1000);
+        }, delay);
+      });
+    });
+
+    unfoldedBoxes.length = 0;
+  }
+
+  function showMemoryCard() {
+    const card = document.getElementById('memory-card');
+    const img = document.getElementById('card-image');
+    const noMemories = document.getElementById('no-memories');
+
+    if (currentImage) {
+      img.src = currentImage;
+      img.style.display = 'block';
+      noMemories.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      noMemories.style.display = 'block';
+    }
+
+    card.classList.add('active');
+  }
+
+  function closeCard() {
+    document.getElementById('memory-card').classList.remove('active');
+
+    // After closing, show image in box
+    if (activeBox && activeBox.dataset.image) {
+      activeBox.innerHTML = `<img src="${activeBox.dataset.image}" alt="Memory" />`;
+    }
+
+    currentImage = null;
+    activeBox = null;
+  }
+
+  function createStartBox() {
+    createBox(0, 0, "🎁 Start Here", true);
+  }
+
+  // Background particles
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.radius = 1 + Math.random() * 6;
+      this.alpha = 0.3 + Math.random() * 0.7;
+      this.dx = (Math.random() - 0.5) * 1.5;
+      this.dy = (Math.random() - 0.5) * 1.5;
+    }
+
+    update() {
+      this.x += this.dx;
+      this.y += this.dy;
+      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+        this.reset();
+      }
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 175, 204, ${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  particles = Array.from({ length: 100 }, () => new Particle());
+  animateParticles();
+
+  createStartBox();
+</script>
+>>>>>>> 9b2a8ad (Initial commit)
 </body>
 </html>
